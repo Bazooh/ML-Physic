@@ -34,13 +34,15 @@ def pinn_loss(
 
     physics_term = PINN_LOSS_PHYSICS_PROP * nn.MSELoss()(ddxu + ddyu, -f_grid)
 
-    true_corners = torch.zeros(2, 2)
-    predicted_corners = torch.tensor(
+    true_borders = torch.zeros(4 * (u_grid_predict.shape[0] - 1), dtype=torch.float32)
+    predicted_borders = torch.cat(
         [
-            [u_grid_predict[0, 0], u_grid_predict[0, -1]],
-            [u_grid_predict[-1, 0], u_grid_predict[-1, -1]],
+            u_grid_predict[0, :],
+            u_grid_predict[-1, :],
+            u_grid_predict[1:-1, 0],
+            u_grid_predict[1:-1, -1],
         ]
     )
-    border_term = PINN_LOSS_BORDER_PROP * nn.MSELoss()(true_corners, predicted_corners)
+    border_term = PINN_LOSS_BORDER_PROP * nn.MSELoss()(true_borders, predicted_borders)
 
     return data_term + physics_term + border_term
