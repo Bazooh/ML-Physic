@@ -24,23 +24,24 @@ class GridDataset(Dataset):
         return self.dataset[idx]
 
 
-dataset = create_dataset()
+dataset = create_dataset(size=1000)
 train_loader = DataLoader(GridDataset(dataset), batch_size=BATCH_SIZE, shuffle=True)
 
 model = Unet(encoder_name="resnet18", in_channels=1, classes=1).to(DEVICE)
 
 
-def train(model, loss, optimizer, train_loader) -> None:
+def train(model: Unet, loss, optimizer, train_loader) -> None:
     model.train()
     for epoch in tqdm(range(EPOCHS)):
-        for data in tqdm(train_loader):
+        pbar = tqdm(train_loader)
+        for data in pbar:
             optimizer.zero_grad()
             f_grid_, u_grid_label = data
-            u_grid_predict = model(f_grid_)
+            u_grid_predict = model(f_grid_.unsqueeze(1)).squeeze(1)
             loss_value = loss(u_grid_label, u_grid_predict, f_grid_)
             loss_value.backward()
             optimizer.step()
-            print(f"Epoch {epoch}, Train loss: {loss_value.item()}")
+            pbar.set_description(f"Epoch {epoch}, Train loss: {loss_value.item()}")
 
 
 def pinn_loss(
@@ -48,19 +49,28 @@ def pinn_loss(
 ) -> float:
     data_term = PINN_LOSS_DATA_PROP * nn.MSELoss()(u_grid_label, u_grid_predict)
 
-    ddxu = derive2_x(u_grid_predict)
-    ddyu = derive2_y(u_grid_predict)
+    ddxu = torch.stack(
+        [derive2_x(u_grid_predict[i]) for i in range(u_grid_predict.shape[0])]
+    )
+    ddyu = torch.stack(
+        [derive2_y(u_grid_predict[i]) for i in range(u_grid_predict.shape[0])]
+    )
 
     physics_term = PINN_LOSS_PHYSICS_PROP * nn.MSELoss()(ddxu + ddyu, -f_grid_)
 
-    true_borders = torch.zeros(4 * (u_grid_predict.shape[0] - 1), dtype=torch.float32)
+    true_borders = torch.zeros(
+        (u_grid_predict.shape[0], 4 * (u_grid_predict.shape[1] - 1)),
+        dtype=torch.float32,
+        device=DEVICE,
+    )
     predicted_borders = torch.cat(
         [
-            u_grid_predict[0, :],
-            u_grid_predict[-1, :],
-            u_grid_predict[1:-1, 0],
-            u_grid_predict[1:-1, -1],
-        ]
+            u_grid_predict[:, 0, :],
+            u_grid_predict[:, -1, :],
+            u_grid_predict[:, 1:-1, 0],
+            u_grid_predict[:, 1:-1, -1],
+        ],
+        dim=1,
     )
     border_term = PINN_LOSS_BORDER_PROP * nn.MSELoss()(true_borders, predicted_borders)
 
