@@ -1,6 +1,7 @@
 import random
 import torch
 from scipy.sparse.linalg import spsolve
+from tqdm import tqdm
 
 from utils import f_grid
 
@@ -63,7 +64,7 @@ def create_dataset(
         :return: dictionary mapping (a, b) to the corresponding solution tensor
     """
     dataset: dict[tuple[float, float], torch.Tensor] = {}
-    for _ in range(size):
+    for _ in tqdm(range(size)):
         a, b = random.uniform(*a_range), random.uniform(*b_range)
         while (a, b) in dataset:
             a, b = random.uniform(*a_range), random.uniform(*b_range)
