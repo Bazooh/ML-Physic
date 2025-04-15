@@ -34,6 +34,21 @@ def derive_x(mat: torch.Tensor) -> torch.Tensor:
     return d_mat
 
 
+def derive2_x(mat: torch.Tensor) -> torch.Tensor:
+    """
+    Compute the second derivative of a matrix along axis x using finite differences, including borders.
+        :param mat: tensor of shape (n, n)
+        :return: tensor of shape (n, n) containing the second derivatives
+    """
+    dx = 1 / (mat.shape[0] - 1)
+    d2_mat = torch.zeros_like(mat)
+    d2_mat[1:-1, :] = (mat[2:, :] - 2 * mat[1:-1, :] + mat[:-2, :]) / (dx**2)
+    d2_mat[0, :] = (mat[2, :] - 2 * mat[1, :] + mat[0, :]) / (dx**2)
+    d2_mat[-1, :] = (mat[-1, :] - 2 * mat[-2, :] + mat[-3, :]) / (dx**2)
+
+    return d2_mat
+
+
 def derive_y(mat: torch.Tensor) -> torch.Tensor:
     """
     Compute the derivative of a matrix along axis y using finite differences, including borders.
@@ -47,6 +62,21 @@ def derive_y(mat: torch.Tensor) -> torch.Tensor:
     d_mat[:, -1] = (mat[:, -1] - mat[:, -2]) / dy
 
     return d_mat
+
+
+def derive2_y(mat: torch.Tensor) -> torch.Tensor:
+    """
+    Compute the second derivative of a matrix along axis y using finite differences, including borders.
+        :param mat: tensor of shape (n, n)
+        :return: tensor of shape (n, n) containing the second derivatives
+    """
+    dy = 1 / (mat.shape[1] - 1)
+    d2_mat = torch.zeros_like(mat)
+    d2_mat[:, 1:-1] = (mat[:, 2:] - 2 * mat[:, 1:-1] + mat[:, :-2]) / (dy**2)
+    d2_mat[:, 0] = (mat[:, 2] - 2 * mat[:, 1] + mat[:, 0]) / (dy**2)
+    d2_mat[:, -1] = (mat[:, -1] - 2 * mat[:, -2] + mat[:, -3]) / (dy**2)
+
+    return d2_mat
 
 
 def visu(mat: torch.Tensor) -> None:
