@@ -41,7 +41,7 @@ def train(model: Unet, loss, optimizer, train_loader) -> None:
             loss_value = loss(u_grid_label, u_grid_predict, f_grid_)
             loss_value.backward()
             optimizer.step()
-            pbar.set_description(f"Epoch {epoch}, Train loss: {loss_value.item()}")
+            pbar.set_description(f"Epoch {epoch}, loss: {loss_value.item(): 12.2f}")
 
 
 def pinn_loss(
