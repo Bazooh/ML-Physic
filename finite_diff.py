@@ -49,7 +49,7 @@ def simulate_u_grid(a: float, b: float, n: int) -> torch.Tensor:
 def create_dataset(
     a_range: tuple[float, float] = (-1, 1),
     b_range: tuple[float, float] = (-1, 1),
-    n: int = 100,
+    n: int = 64,
     size: int = 1000,
 ) -> dict[tuple[float, float], torch.Tensor]:
     """

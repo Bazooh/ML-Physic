@@ -4,38 +4,35 @@ from segmentation_models_pytorch import Unet
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from utils import derive_x, derive_y, f_grid
+from utils import derive2_x, derive2_y, f_grid
 from constants import *
 from torch.utils.data import DataLoader, Dataset
 from finite_diff import create_dataset
 
+
 class GridDataset(Dataset):
     def __init__(self, dataset: dict[tuple[float, float], torch.Tensor]):
-        self.dataset = dataset
+        N = dataset[list(dataset.keys())[0]][1].shape[0]
+        self.dataset = [
+            (v.to(DEVICE), f_grid(*k, N).to(DEVICE)) for k, v in dataset.items()
+        ]
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        key = list(self.dataset.keys())[idx]
-        a, b = key
-        u_grid_label = self.dataset[key]
-        N = u_grid_label.shape[0]
-        f_grid_ = f_grid(a, b, N)
+        return self.dataset[idx]
 
-        return f_grid_, u_grid_label
-    
+
 dataset = create_dataset()
-train_loader = DataLoader(
-    GridDataset(dataset), batch_size=BATCH_SIZE, shuffle=True
-)
+train_loader = DataLoader(GridDataset(dataset), batch_size=BATCH_SIZE, shuffle=True)
 
-model = Unet(encoder_name="resnet18", in_channels=1, classes=1)
+model = Unet(encoder_name="resnet18", in_channels=1, classes=1).to(DEVICE)
 
 
 def train(model, loss, optimizer, train_loader) -> None:
+    model.train()
     for epoch in tqdm(range(EPOCHS)):
-        model.train()
         for data in tqdm(train_loader):
             optimizer.zero_grad()
             f_grid_, u_grid_label = data
@@ -51,8 +48,8 @@ def pinn_loss(
 ) -> float:
     data_term = PINN_LOSS_DATA_PROP * nn.MSELoss()(u_grid_label, u_grid_predict)
 
-    ddxu = derive_x(derive_x(u_grid_predict))
-    ddyu = derive_y(derive_y(u_grid_predict))
+    ddxu = derive2_x(u_grid_predict)
+    ddyu = derive2_y(u_grid_predict)
 
     physics_term = PINN_LOSS_PHYSICS_PROP * nn.MSELoss()(ddxu + ddyu, -f_grid_)
 
@@ -68,6 +65,7 @@ def pinn_loss(
     border_term = PINN_LOSS_BORDER_PROP * nn.MSELoss()(true_borders, predicted_borders)
 
     return data_term + physics_term + border_term
+
 
 train(
     model=model,
