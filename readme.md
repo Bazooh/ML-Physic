@@ -104,11 +104,12 @@ Il devient interessant d'utilser ce model si l'on doit créer plus de $204 + x /
 
 ### Comparaison des erreurs
 
-| Méthode | Loss |
-|---------|------|
-| NN      | xx   |
-| PINN    | xx   |
-| PENN    | xx   |
+| Méthode                   | Loss                   |
+|---------------------------|------------------------|
+| NN                        | $7.2561 \cdot 10^{-5}$ |
+| PINN ($\gamma = 10^{-6}$) | $7.2542 \cdot 10^{-5}$ |
+| PINN ($\gamma = 10^{-7}$) | $7.2579 \cdot 10^{-5}$ |
+| PENN                      | $6.9001 \cdot 10^{-5}$ |
 
 
 
