@@ -126,7 +126,7 @@ losses: list[list[float]] = []
 for i in range(3):
     model.load_state_dict(state_dict)
 
-    val = [0, 10 - 7, 10 - 8][i]
+    val = [0, 10e-7, 10e-8][i]
 
     PINN_LOSS_PHYSICS_PROP = val
 
@@ -158,7 +158,7 @@ import matplotlib.pyplot as plt
 
 # Plot the losses for each training run
 for i, loss in enumerate(losses):
-    plt.plot(loss, label=f"Run {[0, 10 - 7, 10 - 8][i]:6e}")
+    plt.plot(loss, label=f"Run {[0, 10e-7, 10e-8][i]:6e}")
 
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
