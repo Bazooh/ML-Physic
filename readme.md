@@ -4,15 +4,10 @@ Pierre JOURDIN
 Aymeric CONTI
 
 ## Introduction
-Brève présentation du problème étudié et des objectifs.  
-Equation de Poisson :  
+On a choisi le problème de poisson :  
 
-\[
-\begin{cases}
-- \Delta u(x, y) = f(x, y), & \text{pour } (x, y) \in \Omega \\
-u(x, y) = 0, & \text{pour } (x, y) \in \partial\Omega
-\end{cases}
-\]
+-Δu(x, y) = f(x, y),  pour (x, y) ∈ Ω
+u(x, y) = 0,           pour (x, y) ∈ ∂Ω
 
 ---
 
