@@ -120,6 +120,8 @@ Une étude plus approfondie aurait pu être pertinente, mais nous avons préfér
 - Terme "data" : `1 - 1e-7`
 - Terme CL : `0`
 
+Le coefficient de résidu choisi peut sembler faible, mais en réalité c'est ce coefficient qui permet d'avoir des contributions comparables des deux termes de la loss dans la loss finale.
+
 ---
 
 ## 4. Résolution par PENN (Physical-Encoded Neural Network)
@@ -136,9 +138,16 @@ Une étude plus approfondie aurait pu être pertinente, mais nous avons préfér
 
 ---
 
-## 4. Résultats
+## 5. Résultats
+
+Il y a deux comparaisons intéressantes pour juger nos méthodes SciML.
+- comparaison au solveur numérique : on attend gain de temps, mais on ne peut pas comparer précision car par définition la précision de la méthode numérique est maximale (c'est ce qu'on a utilisé comme ground truth)
+- comparaison au ML pur
 
 ### Comparaison des temps de calcul
+
+On compare dans le tableau suivant le temps de calcul à l'inférence, donc sans prendre en compte le temps d'entrainement ni de création des données.
+On utilise le réseau de la section 2 ici car les autres (sections 3 et 4) ont le même temps d'inférence.
 
 | Méthode                               | Temps de calcul |
 |---------------------------------------|-----------------|
@@ -146,15 +155,23 @@ Une étude plus approfondie aurait pu être pertinente, mais nous avons préfér
 | Réseau de neurones (batch_size = 1)   | 916.87 it/s     |
 | Réseau de neurones (batch_size = 64)  | 3072.00 it/s    |
 
+Comme attendu, les méthodes par réseau de neurones sont plus rapides, en revanche il faut aussi prendre en compre la préparation du réseau de neurones (génération des données + entrainement)
+
 Le temps total de préparation pour l'utilisation du réseau de neurones est de 204 secondes (dont 119 secondes pour la génération du dataset et 85 secondes pour l'entraînement).
 
-Il devient avantageux d'utiliser le modèle appris lorsque l’on doit générer plus de données que le seuil d’intersection des coûts :
+On peut alors calculer à partir de combien d'inférences il devient intéressant (en temps de calcul uniquement) d'utiliser les réseaux de neurones :
 
 $$204 + \frac{x}{3072} = \frac{x}{8.33} \quad \Rightarrow \quad x \approx 1704$$
 
-Autrement dit, à partir de 1704 prédictions, l'approche par réseau devient plus rapide que la résolution physique directe.
+Autrement dit, à partir de 1704 prédictions, l'approche par réseau devient plus rapide que la résolution physique directe, temps de préparation inclus.
+On peut noter que, sur ces 1704 prédictions :
+- 1000 sont dues à la création des données
+- environ 700 sont dues à l'entrainement, car le temps d'inférence est assez négligeable.
 
 ### Comparaison des erreurs
+
+On compare ici les précisions (MSE, composante data uniquement) de nos modèles.
+Comme évoqué précédemment, on ne fait pas apparaitre le solveur numérique car sa loss est 0 par définition.
 
 | Méthode                   | Loss                   |
 |---------------------------|------------------------|
@@ -164,10 +181,6 @@ Autrement dit, à partir de 1704 prédictions, l'approche par réseau devient pl
 | PENN                      | $6.9001 \cdot 10^{-5}$ |
 
 On observe que les PINNs obtiennent des performances comparables au réseau classique pour des hyperparamètres appropriés. Le modèle PENN présente une erreur légèrement plus faible, indiquant un meilleur respect des contraintes physiques.
-
-
-
-
 
 ---
 
