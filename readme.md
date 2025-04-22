@@ -167,13 +167,44 @@ Autrement dit, à partir de 1704 prédictions, l'approche par réseau devient pl
 
 On observe que les PINNs obtiennent des performances comparables au réseau classique pour des hyperparamètres appropriés. Le modèle PENN présente une erreur légèrement plus faible, indiquant un meilleur respect des contraintes physiques.
 
-
-
-
-
 ---
 
 ## Conclusion
-- Résumé des observations
-- Avantages et limites de chaque méthode
-- Perspectives
+
+
+### Visualisation des résultats
+
+<div style="display: flex; justify-content: space-between;">
+    <img src="figures/prediction.png" alt="Prédiction du NN" style="width: 32%;">
+    <img src="figures/real.png" alt="Physical solution" style="width: 32%;">
+    <img src="figures/error.png" alt="Erreur" style="width: 32%;">
+</div>
+
+La figure ci-dessus présente, de gauche à droite :
+
+1. La prédiction du réseau de neurones : on observe la solution $u(x, y)$ prédite à partir du champ $f(x,y)$ donné.
+2. La solution physique de référence : obtenue par la méthode des différences finies, elle sert de "ground truth" pour l’entraînement et l’évaluation.
+3. L’erreur absolue : différence point par point entre la prédiction du modèle et la solution réelle.
+
+Dans ce projet, nous avons exploré différentes méthodes pour résoudre l’équation de Poisson sur un domaine carré, en comparant une approche classique par différences finies avec des méthodes d'apprentissage automatique, notamment les réseaux de neurones classiques, les PINNs et les PENNs.
+
+Les principales observations sont les suivantes :
+
+- La méthode des différences finies fournit une solution de référence fiable, mais son coût devient important lorsqu’un grand nombre de problèmes doivent être résolus.
+- Le réseau de neurones classique permet des prédictions très rapides une fois entraîné, mais ne respecte pas explicitement les lois physiques sous-jacentes.
+- Les PINNs intègrent les connaissances physiques dans la fonction de perte, ce qui permet un certain respect de l’équation différentielle tout en conservant de bonnes performances.
+- Les PENNs imposent structurellement les contraintes physiques, ce qui améliore la précision et garantit le respect des conditions aux limites.
+
+Chaque approche a ses avantages :
+
+- **NN classique** : simple, rapide en inférence, mais peu contraint physiquement.
+- **PINN** : bon compromis entre apprentissage supervisé et respect de la physique, au prix d’un réglage délicat des pondérations.
+- **PENN** : meilleure intégration des contraintes physiques, au prix d’une architecture plus rigide.
+
+En perspective, plusieurs pistes peuvent être envisagées :
+
+- Améliorer l'entraînement des PINNs avec des stratégies plus robustes de pondération adaptative.
+- Étendre les modèles à des domaines non réguliers ou à des équations plus complexes.
+- Étudier l’hybridation entre méthodes numériques classiques et réseaux informés physiquement, pour tirer parti des forces de chacune.
+
+Ce travail illustre comment les outils d'apprentissage automatique peuvent compléter les méthodes numériques traditionnelles, en particulier dans un contexte de génération rapide de solutions à grande échelle.
