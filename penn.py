@@ -136,7 +136,7 @@ model = Dense().to(DEVICE)
 #torch.save(model.state_dict(), "model.pth")
 
 
-model.load_state_dict(torch.load("model.pth"))
+model.load_state_dict(torch.load("models/0.000000e+00.pth"))
 model.eval()
 
 """
@@ -159,7 +159,7 @@ visu(real_u)
 visu(u - real_u)
 """
 
-test_dataset = create_dataset(a_range=(-1, 1), b_range=(-1, 1), size=100)
+test_dataset = create_dataset(a_range=(-10, 10), b_range=(-10, 10), size=1000)
 test_loader = DataLoader(GridDataset(test_dataset), batch_size=BATCH_SIZE)
 
 loss = 0

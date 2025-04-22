@@ -19,18 +19,51 @@ u(x, y) = 0, & \text{pour } (x, y) \in \partial\Omega
 ## 1. Simulation par différences finies
 
 ### 1.1 Formulation du problème
-- Domaine et conditions aux limites
-- Discrétisation de l'équation
-- Maillage utilisé
+
+On considère le problème de résolution de l'équation de Poisson sur un domaine carré $[0, 1]^2$ :
+
+$$\Delta u(x, y) = f(x, y), \quad \text{pour } (x, y) \in (0, 1)^2$$
+
+avec les conditions aux limites de Dirichlet homogènes :
+
+$$u(x, y) = 0, \quad \text{pour } (x, y) \in \partial([0, 1]^2)$$
+
+On discrétise le domaine à l’aide d’une grille uniforme de taille 64 × 64, soit N = 64 points dans chaque direction. L’espacement entre les points est $(h = \frac{1}{N+1})$.
 
 ### 1.2 Implémentation
-- Schéma utilisé (e.g. central à l’ordre 2)
-- Construction de la matrice
-- Résolution (solveur direct ou itératif)
 
-### 1.3 Résultats
-- Visualisation de la solution
-- Erreur si solution exacte connue
+Nous utilisons la méthode des différences finies centrées pour approximer le Laplacien. Cela donne, pour un point intérieur (i,j) :
+
+$$\Delta u_{i,j} \approx \frac{u_{i+1,j} + u_{i-1,j} + u_{i,j+1} + u_{i,j-1} - 4u_{i,j}}{h^2}$$
+
+Cette approximation conduit à un système linéaire de la forme :
+
+$$A \mathbf{u} = \mathbf{f}$$
+
+où A est une matrice creuse de taille $(N^2 × N^2)$ avec :
+- 4 sur la diagonale principale,
+- -1 sur les coefficients correspondant aux voisins (haut, bas, gauche, droite), en tenant compte de la structure 2D de la grille.
+
+Voici un exemple de structure pour A (dans le cas N=3 pour la clarté) :
+
+$$
+A = \begin{pmatrix}
+ 4 & -1 &  0 &  0 &  0 &  0 &  0 &  0 &  0 \\
+-1 &  4 & -1 &  0 &  0 &  0 &  0 &  0 &  0 \\
+ 0 & -1 &  4 & -1 &  0 &  0 &  0 &  0 &  0 \\
+ 0 &  0 & -1 &  4 & -1 &  0 &  0 &  0 &  0 \\
+ 0 &  0 &  0 & -1 &  4 & -1 &  0 &  0 &  0 \\
+ 0 &  0 &  0 &  0 & -1 &  4 & -1 &  0 &  0 \\
+ 0 &  0 &  0 &  0 &  0 & -1 &  4 & -1 &  0 \\
+ 0 &  0 &  0 &  0 &  0 &  0 & -1 &  4 & -1 \\
+ 0 &  0 &  0 &  0 &  0 &  0 &  0 & -1 &  4
+\end{pmatrix}
+$$
+
+La matrice A est construite en utilisant la fonction `kronsum()` de `scipy.sparse`, qui réalise le produit de Kronecker entre deux matrices tridiagonales.
+
+Le système linéaire est résolu grâce à la fonction `spsolve()` de la bibliothèque `scipy.sparse.linalg`, qui est adaptée au traitement de matrices creuses.
+
 
 ---
 
