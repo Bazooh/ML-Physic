@@ -3,7 +3,7 @@ import torch
 from scipy.sparse.linalg import spsolve
 from tqdm import tqdm
 
-from utils import f_grid
+from utils import f_grid, visu
 
 
 def simulate_u_grid(a: float, b: float, n: int) -> torch.Tensor:
@@ -70,3 +70,8 @@ def create_dataset(
             a, b = random.uniform(*a_range), random.uniform(*b_range)
         dataset[a, b] = simulate_u_grid(a, b, n)
     return dataset
+
+
+if __name__ == "__main__":
+    # Example usage
+    visu(simulate_u_grid(6.74, 6, 50))
