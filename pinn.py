@@ -35,8 +35,9 @@ class GridDataset(Dataset):
         return u, f
 
 
-def train(model: nn.Module, loss, optimizer, train_loader, test_set) -> None:
+def train(model: nn.Module, loss, optimizer, train_loader, test_set) -> list[float]:
     model.train()
+    losses: list[float] = []
     for epoch in tqdm(range(EPOCHS)):
         pbar = tqdm(train_loader)
         for data in pbar:
@@ -46,17 +47,20 @@ def train(model: nn.Module, loss, optimizer, train_loader, test_set) -> None:
             loss_value = loss(u_grid_label, u_grid_predict, f_grid_)
             loss_value.backward()
             optimizer.step()
-            pbar.set_description(f"Epoch {epoch: 2}, loss: {loss_value.item(): 15.5f}")
+            pbar.set_description(f"Epoch {epoch: 2}, loss: {loss_value.item(): 10e}")
 
         u, f = test_set.get_u_f()
         u_pred = model(f.unsqueeze(1))
         test_loss = loss(u, u_pred, f)
-        print(f"Test loss: {test_loss.item(): 15.5f}")
+        print(f"Test loss: {test_loss.item(): 10e}")
+        losses.append(test_loss.item())
+
+    return losses
 
 
 def pinn_loss(
     u_grid_label: torch.Tensor, u_grid_predict: torch.Tensor, f_grid_: torch.Tensor
-) -> float:
+):
     data_term = PINN_LOSS_DATA_PROP * nn.MSELoss()(u_grid_label, u_grid_predict)
 
     ddxu = torch.stack(
@@ -87,8 +91,10 @@ def pinn_loss(
     return data_term + physics_term + border_term
 
 
-# dataset = create_dataset(size=1000)
-# train_loader = DataLoader(GridDataset(dataset), batch_size=BATCH_SIZE)
+dataset = create_dataset(a_range=(-10, 10), b_range=(-10, 10), size=1000)
+train_loader = DataLoader(GridDataset(dataset), batch_size=BATCH_SIZE)
+test_dataset = create_dataset(a_range=(-10, 10), b_range=(-10, 10), size=1000)
+test_loader = DataLoader(GridDataset(test_dataset), batch_size=BATCH_SIZE)
 
 
 class Dense(nn.Module):
@@ -115,36 +121,48 @@ class Dense(nn.Module):
 
 
 model = Dense().to(DEVICE)
+state_dict = model.state_dict()
+losses: list[list[float]] = []
+for i in range(3):
+    model.load_state_dict(state_dict)
 
-# train(
-#     model=model,
-#     loss=pinn_loss,
-#     optimizer=torch.optim.Adam(model.parameters(), lr=LEARNING_RATE),
-#     train_loader=train_loader,
-#     test_set=GridDataset(create_dataset(size=100)),
-# )
+    val = [0, 10 - 7, 10 - 8][i]
 
-# print("Training complete.")
-# torch.save(model.state_dict(), "model.pth")
+    PINN_LOSS_PHYSICS_PROP = val
+
+    model.train()
+    losses.append(
+        train(
+            model=model,
+            loss=pinn_loss,
+            optimizer=torch.optim.Adam(model.parameters(), lr=LEARNING_RATE),
+            train_loader=train_loader,
+            test_set=GridDataset(create_dataset(size=100)),
+        )
+    )
+    print("Training complete.")
+    torch.save(model.state_dict(), f"{val:6e}.pth")
+    model.eval()
+
+    loss = 0
+    for batch in test_loader:
+        u_grid_label, f_grid_ = batch
+        with torch.no_grad():
+            u_grid_predict = model(f_grid_.unsqueeze(1))
+        loss += nn.MSELoss()(u_grid_label, u_grid_predict).item()
+
+    print(f"Loss {val:6e}.pth: {loss / len(test_loader)}")
 
 
-model.load_state_dict(torch.load("model.pth"))
-model.eval()
+import matplotlib.pyplot as plt
 
-a, b, n = random.uniform(-1, 1), random.uniform(-1, 1), 64
-new_f = f_grid(a, b, n).unsqueeze(0).unsqueeze(0).to(DEVICE)
+# Plot the losses for each training run
+for i, loss in enumerate(losses):
+    plt.plot(loss, label=f"Run {[0, 10 - 7, 10 - 8][i]:6e}")
 
-u = model(new_f).squeeze(0).cpu().detach()
-real_u = simulate_u_grid(a, b, n)
-
-print(nn.MSELoss()(u, real_u).item())
-
-physics_term = PINN_LOSS_PHYSICS_PROP * nn.MSELoss()(
-    derive2_x(u) + derive2_y(u), -new_f.squeeze(0).cpu().detach()
-)
-
-print(physics_term.item())
-
-visu(u)
-visu(real_u)
-visu(u - real_u)
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Training Losses")
+plt.legend()
+plt.grid(True)
+plt.show()
