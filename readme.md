@@ -148,10 +148,30 @@ Il y a deux comparaisons intéressantes pour juger nos méthodes SciML.
 - comparaison au solveur numérique : on attend gain de temps, mais on ne peut pas comparer précision car par définition la précision de la méthode numérique est maximale (c'est ce qu'on a utilisé comme ground truth)
 - comparaison au ML pur
 
+### Visualisation des résultats
+
+Visualisation des résultats pour PINN ($\gamma = 1e-7$) :
+
+<div style="display: flex; justify-content: space-between;">
+    <img src="figures/prediction.png" alt="Prédiction du NN" style="width: 32%;">
+    <img src="figures/real.png" alt="Physical solution" style="width: 32%;">
+    <img src="figures/error.png" alt="Erreur" style="width: 32%;">
+</div>
+
+La figure ci-dessus présente, de gauche à droite :
+
+1. La prédiction du réseau de neurones : on observe la solution $u(x, y)$ prédite à partir du champ $f(x,y)$ donné.
+2. La solution physique de référence : obtenue par la méthode des différences finies, elle sert de "ground truth" pour l’entraînement et l’évaluation.
+3. L’erreur absolue : différence point par point entre la prédiction du modèle et la solution réelle.
+
+On note que, comme il sera vu plus tard, les résultats de PENN et du NN de base sont très comparables, donc la visualisation est identique.
+
 ### Comparaison des temps de calcul
 
 On compare dans le tableau suivant le temps de calcul à l'inférence, donc sans prendre en compte le temps d'entrainement ni de création des données.
 On utilise le réseau de la section 2 ici car les autres (sections 3 et 4) ont le même temps d'inférence.
+
+Comme montré dans la visualisation, ces réseaux donnent des résultats que nous considérons satisfaisants à l'oeil nu (bien que nous n'ayons pas de critère quantitatif pour le montrer), donc la comparaison en temps de calcul a du sens.
 
 | Méthode                               | Temps de calcul |
 |---------------------------------------|-----------------|
@@ -189,21 +209,6 @@ On observe que les PINNs obtiennent des performances comparables au réseau clas
 ---
 
 ## Conclusion
-
-
-### Visualisation des résultats
-
-<div style="display: flex; justify-content: space-between;">
-    <img src="figures/prediction.png" alt="Prédiction du NN" style="width: 32%;">
-    <img src="figures/real.png" alt="Physical solution" style="width: 32%;">
-    <img src="figures/error.png" alt="Erreur" style="width: 32%;">
-</div>
-
-La figure ci-dessus présente, de gauche à droite :
-
-1. La prédiction du réseau de neurones : on observe la solution $u(x, y)$ prédite à partir du champ $f(x,y)$ donné.
-2. La solution physique de référence : obtenue par la méthode des différences finies, elle sert de "ground truth" pour l’entraînement et l’évaluation.
-3. L’erreur absolue : différence point par point entre la prédiction du modèle et la solution réelle.
 
 Dans ce projet, nous avons exploré différentes méthodes pour résoudre l’équation de Poisson sur un domaine carré, en comparant une approche classique par différences finies avec des méthodes d'apprentissage automatique, notamment les réseaux de neurones classiques, les PINNs et les PENNs.
 
