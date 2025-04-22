@@ -4,28 +4,24 @@ Pierre JOURDIN
 Aymeric CONTI
 
 ## Introduction
-On a choisi le problème de poisson :  
 
--Δu(x, y) = f(x, y),  pour (x, y) ∈ Ω
-u(x, y) = 0,           pour (x, y) ∈ ∂Ω
+On a choisi de considerer le problème de résolution de l'équation de Poisson sur un domaine carré $[0, 1]^2$ :
 
----
-
-## 1. Simulation par différences finies
-
-### 1.1 Formulation du problème
-
-On considère le problème de résolution de l'équation de Poisson sur un domaine carré $[0, 1]^2$ :
-
-$$\Delta u(x, y) = f(x, y), \quad \text{pour } (x, y) \in (0, 1)^2$$
+$$\Delta u(x, y) = -f(x, y), \quad \text{pour } (x, y) \in [0, 1]^2$$
 
 avec les conditions aux limites de Dirichlet homogènes :
 
 $$u(x, y) = 0, \quad \text{pour } (x, y) \in \partial([0, 1]^2)$$
 
-On discrétise le domaine à l’aide d’une grille uniforme de taille 64 × 64, soit N = 64 points dans chaque direction. L’espacement entre les points est $(h = \frac{1}{N+1})$.
+et avec la fonction f définie par :
 
-### 1.2 Implémentation
+$$f(x, y) = x sin (a \pi y) + y sin (b \pi x)$$
+
+a et b sont les paramètres a faire varier pour obtenir les différents problèmes de cette famille.
+
+## 1. Simulation par différences finies
+
+On discrétise le domaine à l’aide d’une grille uniforme de taille 64 × 64, soit N = 64 points dans chaque direction. L’espacement entre les points est $(h = \frac{1}{N+1})$.
 
 Nous utilisons la méthode des différences finies centrées pour approximer le Laplacien. Cela donne, pour un point intérieur (i,j) :
 
@@ -62,24 +58,71 @@ Le système linéaire est résolu grâce à la fonction `spsolve()` de la biblio
 
 ---
 
-## 2. Résolution par PINN (Physics-Informed Neural Network)
+## 2. Résolution par Réseau de Neurones
+
+Fait office de baseline ML
 
 ### 2.1 Principe de la méthode
-- Structure du réseau (MLP, activation, etc.)
-- Entraînement avec résidu PDE + conditions aux limites
+
+- Les données d'entraînement et de test sont générées à l'aide de la méthode des différences finies.
+- Chaque donnée d'entraînement est constituée de :
+  - **Input** : une grille de \( f(x, y) \), calculée via la formule donnée.
+  - **Label** : une grille de \( u(x, y) \), solution obtenue par différences finies.
+- Un réseau de neurones est entraîné pour approximer la solution \( u \) à partir du champ \( f \).
+
+**Avantages :**
+- facile à implémenter
+- Prédiction rapide une fois entraîné.
+
+**Inconvénients :**
+- Aucune contrainte physique imposée.
+- Approxime le résultat donné par les différence finies, qui est déjà une approximation de la réalité
 
 ### 2.2 Implémentation
-- Choix des points (collocation)
-- Détail de la fonction de perte
-- Optimisation
 
-### 2.3 Résultats
-- Comparaison à la solution FD
-- Discussion (qualité, temps d’entraînement, sensibilité)
+- **Architecture** : réseau de neurones convolutionnel suivi d'une couche dense.
+  - 5 couches convolutives avec padding (pas de perte de dimension) et activations ReLU.
+  - Une couche dense linéaire en sortie.
+
+- **Fonction de perte** : MSE (Mean Squared Error), classique pour un problème de régression.
 
 ---
 
-## 3. Résolution par PENN (Physical-Encoded Neural Network)
+## 3. Résolution par PINN (Physics-Informed Neural Network)
+
+### 3.1 Principe de la méthode
+
+L’objectif est d’incorporer explicitement la physique du problème dans l’apprentissage du réseau, en forçant le respect de l’équation différentielle.
+
+La structure du réseau est similaire à celle utilisée en apprentissage supervisé, mais la **fonction de perte** inclut maintenant plusieurs composantes :
+
+- **Terme "data"** : MSE entre la sortie du réseau et la solution de référence (comme dans la méthode classique).
+- **Terme "résidu EDP"** : calcul des dérivées secondes de la solution prédite, puis MSE entre \(-\Delta u_\theta(x, y)\) et \(f(x, y)\).
+- **Terme "conditions aux limites"** : MSE entre la solution du réseau et 0 sur le bord du domaine.
+
+**Avantages :**
+- Intégration directe des connaissances physiques.
+- Prédiction rapide après entraînement.
+- Reste relativement simple à implémenter
+
+**Inconvénients :**
+- Approxime le résultat donné par les différence finies, qui est déjà une approximation de la réalité
+
+---
+
+### 3.2 Implémentation
+
+Le terme de conditions aux limites a été supprimé après expérimentation, car il dégradait les performances dans notre cas.
+Une étude plus approfondie aurait pu être pertinente, mais nous avons préféré nous focaliser sur la partie concernant le résidu d'EDP dans ce travail.
+
+**Pondérations choisies :**
+- Résidu PDE : `1e-7`
+- Terme "data" : `1 - 1e-7`
+- Terme CL : `0`
+
+---
+
+## 4. Résolution par PENN (Physical-Encoded Neural Network)
 
 ### 3.1 Principe de la méthode
 - Modification de l’architecture pour imposer les CL "hard"
