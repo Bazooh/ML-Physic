@@ -139,6 +139,7 @@ model = Dense().to(DEVICE)
 model.load_state_dict(torch.load("model.pth"))
 model.eval()
 
+"""
 a, b, n = random.uniform(-1, 1), random.uniform(-1, 1), 64
 new_f = f_grid(a, b, n).unsqueeze(0).unsqueeze(0).to(DEVICE)
 
@@ -156,3 +157,16 @@ print(physics_term.item())
 visu(u)
 visu(real_u)
 visu(u - real_u)
+"""
+
+test_dataset = create_dataset(a_range=(-1, 1), b_range=(-1, 1), size=100)
+test_loader = DataLoader(GridDataset(test_dataset), batch_size=BATCH_SIZE)
+
+loss = 0
+for batch in test_loader:
+    u_grid_label, f_grid_ = batch
+    with torch.no_grad():
+        u_grid_predict = model(f_grid_.unsqueeze(1))
+    loss += nn.MSELoss()(u_grid_label, u_grid_predict).item()
+
+print(f"Loss : {loss / len(test_loader)}")

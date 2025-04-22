@@ -1,10 +1,17 @@
-# Résolution d’un problème de Poisson stationnaire par différentes méthodes SciML
+# Conception et évaluation de méthodes ML en physique
+
+Pierre JOURDIN
+Aymeric CONTI
 
 ## Introduction
 Brève présentation du problème étudié et des objectifs.  
 Equation de Poisson :  
+
 \[
-- \Delta u(x, y) = f(x, y), \quad u|_{\partial\Omega} = 0
+\begin{cases}
+- \Delta u(x, y) = f(x, y), & \text{pour } (x, y) \in \Omega \\
+u(x, y) = 0, & \text{pour } (x, y) \in \partial\Omega
+\end{cases}
 \]
 
 ---
