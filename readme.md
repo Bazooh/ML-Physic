@@ -73,10 +73,6 @@ Le système linéaire est résolu grâce à la fonction `spsolve()` de la biblio
 - Détail de la fonction de perte
 - Optimisation
 
-### 2.3 Résultats
-- Comparaison à la solution FD
-- Discussion (qualité, temps d’entraînement, sensibilité)
-
 ---
 
 ## 3. Résolution par PENN (Physical-Encoded Neural Network)
@@ -91,10 +87,31 @@ Le système linéaire est résolu grâce à la fonction `spsolve()` de la biblio
 - Formule de la loss (énergie)
 - Contraintes physiques encodées
 
-### 3.3 Résultats
-- Qualité de la solution
-- Comparaison avec PINN et FD
-- Avantages/inconvénients
+---
+
+## 4. Résultats
+
+### Comparaison des temps de calculs
+
+| Méthode                               | Temps de calcul |
+|---------------------------------------|-----------------|
+| Résolution Physique                   | 8.33 it/s       |
+| Réseau de Neuronnes (batch_size = 1)  | 916.87 it/s     |
+| Réseau de Neuronnes (batch_size = 64) | 3072.00 it/s    |
+
+Comme le temps d'entrainement des réseaux de neuronnes est de 204 secondes (119 secondes de génération de dataset + 85 secondes d'entrainement)
+Il devient interessant d'utilser ce model si l'on doit créer plus de $204 + x / 3072 = x / 8.33 \implies x = 1704$ données.
+
+### Comparaison des erreurs
+
+| Méthode | Loss |
+|---------|------|
+| NN      | xx   |
+| PINN    | xx   |
+| PENN    | xx   |
+
+
+
 
 ---
 
