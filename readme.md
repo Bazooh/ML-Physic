@@ -91,25 +91,33 @@ Le système linéaire est résolu grâce à la fonction `spsolve()` de la biblio
 
 ## 4. Résultats
 
-### Comparaison des temps de calculs
+### Comparaison des temps de calcul
 
 | Méthode                               | Temps de calcul |
 |---------------------------------------|-----------------|
-| Résolution Physique                   | 8.33 it/s       |
-| Réseau de Neuronnes (batch_size = 1)  | 916.87 it/s     |
-| Réseau de Neuronnes (batch_size = 64) | 3072.00 it/s    |
+| Résolution physique                   | 8.33 it/s       |
+| Réseau de neurones (batch_size = 1)   | 916.87 it/s     |
+| Réseau de neurones (batch_size = 64)  | 3072.00 it/s    |
 
-Comme le temps d'entrainement des réseaux de neuronnes est de 204 secondes (119 secondes de génération de dataset + 85 secondes d'entrainement)
-Il devient interessant d'utilser ce model si l'on doit créer plus de $204 + x / 3072 = x / 8.33 \implies x = 1704$ données.
+Le temps total de préparation pour l'utilisation du réseau de neurones est de 204 secondes (dont 119 secondes pour la génération du dataset et 85 secondes pour l'entraînement).
+
+Il devient avantageux d'utiliser le modèle appris lorsque l’on doit générer plus de données que le seuil d’intersection des coûts :
+
+$$204 + \frac{x}{3072} = \frac{x}{8.33} \quad \Rightarrow \quad x \approx 1704$$
+
+Autrement dit, à partir de 1704 prédictions, l'approche par réseau devient plus rapide que la résolution physique directe.
 
 ### Comparaison des erreurs
 
 | Méthode                   | Loss                   |
 |---------------------------|------------------------|
 | NN                        | $7.2561 \cdot 10^{-5}$ |
-| PINN ($\gamma = 10^{-6}$) | $7.2542 \cdot 10^{-5}$ |
-| PINN ($\gamma = 10^{-7}$) | $7.2579 \cdot 10^{-5}$ |
+| PINN $(\gamma = 10^{-6})$ | $7.2542 \cdot 10^{-5}$ |
+| PINN $(\gamma = 10^{-7})$ | $7.2579 \cdot 10^{-5}$ |
 | PENN                      | $6.9001 \cdot 10^{-5}$ |
+
+On observe que les PINNs obtiennent des performances comparables au réseau classique pour des hyperparamètres appropriés. Le modèle PENN présente une erreur légèrement plus faible, indiquant un meilleur respect des contraintes physiques.
+
 
 
 
