@@ -122,19 +122,23 @@ Une étude plus approfondie aurait pu être pertinente, mais nous avons préfér
 
 Le coefficient de résidu choisi peut sembler faible, mais en réalité c'est ce coefficient qui permet d'avoir des contributions comparables des deux termes de la loss dans la loss finale.
 
+Le coefficient de résidu choisi peut sembler faible, mais en réalité c'est ce coefficient qui permet d'avoir des contributions comparables des deux termes de la loss dans la loss finale.
+
 ---
 
-## 4. Résolution par PENN (Physical-Encoded Neural Network)
+## 4. Résolution par PENN (Physics-Encoded Neural Network)
 
-### 3.1 Principe de la méthode
-- Modification de l’architecture pour imposer les CL "hard"
-- Perte basée sur l’énergie potentielle (formulation variationnelle)
-- Intégration de la physique dans le réseau
+### 4.1 Principe de la méthode
 
-### 3.2 Implémentation
-- Structure du réseau
-- Formule de la loss (énergie)
-- Contraintes physiques encodées
+Le modèle PENN repose sur une approche différente des PINNs : au lieu d’ajouter la physique dans la fonction de perte, on encode directement les contraintes physiques dans l’**architecture du réseau**.
+
+**Imposition des conditions aux limites de manière "hard"** : le réseau est construit de telle sorte que les sorties satisfont exactement les conditions de Dirichlet.
+
+Cette méthode offre un respect plus strict des contraintes physiques.
+
+### 4.2 Implémentation
+
+- **Structure du réseau** : identique à celle utilisée pour le PINN, mais sa sortie est automatiquement contrainte à vérifier $u(x, y) = 0$ sur le bord.
 
 ---
 
